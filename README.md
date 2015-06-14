@@ -24,3 +24,4 @@ ifconig -a 查看本机ip，并记住这个ip,然后 vi /etc/hosts
 
 用 hostname 检查主机名是否正确，用 ping <主机名> 查看是否ping通，并解析到自己的ip。
 
+```
