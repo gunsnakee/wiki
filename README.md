@@ -152,4 +152,5 @@ chown oracle:oinstall linux_11gR2_database_*of2.zip
 2.2 切换到oracle 用户，解压 linux_11gR2_database_1of2.zip,linux_11gR2_database_2of2.zip
 
 unzip linux_11gR2_database_1of2.zip
+
 unzip linux_11gR2_database_2of2.zip
