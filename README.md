@@ -272,7 +272,7 @@ NSN_PROTOCOLS={"TCP;HOSTNAME;1521"}
 
 ```
 
-netca /silent /responseFile /home/oracle/netca.rsp
+netca /silent /responseFile /tmp/database/netca.rsp
 
 2.7 修改 /etc/oratab
 
