@@ -52,6 +52,21 @@ oracle              hard    nofile  65536
 oracle              soft    stack   10240
 ```
 
+vi /etc/pam.d/login (在文件最后增加或修改以下参数)  
+
+session required /lib/security/pam_limits.so    <--- 注意是32位还是64位的系统
+
+vi /etc/profile (在文件最后增加或修改以下脚本)  
+
+if [ $USER = "oracle" ]; then  
+if [ $SHELL = "/bin/ksh" ]; then  
+ulimit -p 16384  
+ulimit -n 65536  
+else  
+ulimit -u 16384 -n 65536  
+fi  
+fi 
+
 1.4 安装软件包
 
 ```javascript
@@ -120,10 +135,15 @@ chmod -R 775 /u01
 
 su oracle
 
+创建清单文件目录
+
+mkdir -p /home/oracle/inventory
+
 编辑 ~/.bash_profile
 
 ```javascript
 # Oracle Settings
+umask 022
 TMP=/tmp; export TMP
 TMPDIR=$TMP; export TMPDIR
 
@@ -136,10 +156,18 @@ ORACLE_SID=DB11G; export ORACLE_SID
 PATH=/usr/sbin:$PATH; export PATH
 PATH=$ORACLE_HOME/bin:$PATH; export PATH
 
+LC_ALL="en_US"; export  LC_ALL
+LANG="en_US"; export LANG 
+NLS_LANG="AMERICAN_AMERICA.ZHS16GBK"; export  NLS_LANG
+NLS_DATE_FORMAT="YYYY-MM-DD HH24:MI:SS"; export NLS_DATE_FORMAT 
+
 LD_LIBRARY_PATH=$ORACLE_HOME/lib:/lib:/usr/lib; export LD_LIBRARY_PATH
 CLASSPATH=$ORACLE_HOME/jlib:$ORACLE_HOME/rdbms/jlib; export CLASSPATH
 ```
-编辑完后执行：  . ~/.bash_profile  <--环境变量马上生效，不需要重新登录
+编辑完后执行：  . ~/.bash_profile  
+
+最好reboot一下系统。
+
 
 2、开始安装
 
@@ -154,3 +182,161 @@ chown oracle:oinstall linux_11gR2_database_*of2.zip
 unzip linux_11gR2_database_1of2.zip
 
 unzip linux_11gR2_database_2of2.zip
+
+2.3 编辑db_install.rsp 
+
+cd /tmp/database
+
+cp response/db_install.rsp ./
+
+```javascript
+
+oracle.install.responseFileVersion=/oracle/install/rspfmt_dbinstall_response_schema_v11_2_0
+oracle.install.option=INSTALL_DB_SWONLY
+ORACLE_HOSTNAME=hpp-backup
+UNIX_GROUP_NAME=oinstall
+INVENTORY_LOCATION=/home/oracle/inventory
+SELECTED_LANGUAGES=en
+ORACLE_HOME=/u01/app/oracle/product/11.2.0/db_1
+ORACLE_BASE=/u01/app/oracle
+oracle.install.db.InstallEdition=EE
+oracle.install.db.isCustomInstall=true
+oracle.install.db.customComponents=oracle.server:11.2.0.1.0,oracle.sysman.ccr:10.2.7.0.0,oracle.xdk:11.2.0.1.0,oracle.rdbms.oci:11.2.0.1.0,oracle.network:11.2.0.1.0,oracle.network.listener:11.2.0.1.0,oracle.rdbms:11.2.0.1.0,oracle.options:11.2.0.1.0,oracle.rdbms.partitioning:11.2.0.1.0,oracle.oraolap:11.2.0.1.0,oracle.rdbms.dm:11.2.0.1.0,oracle.rdbms.dv:11.2.0.1.0,orcle.rdbms.lbac:11.2.0.1.0,oracle.rdbms.rat:11.2.0.1.0
+oracle.install.db.DBA_GROUP=dba
+oracle.install.db.OPER_GROUP=oper
+oracle.install.db.config.starterdb.type=GENERAL_PURPOSE
+oracle.install.db.config.starterdb.globalDBName=DB11G
+oracle.install.db.config.starterdb.SID=DB11G
+oracle.install.db.config.starterdb.characterSet=AL32UTF8
+oracle.install.db.config.starterdb.memoryOption=true
+oracle.install.db.config.starterdb.installExampleSchemas=false
+oracle.install.db.config.starterdb.enableSecuritySettings=true
+oracle.install.db.config.starterdb.password.ALL=abcd1234
+oracle.install.db.config.starterdb.control=DB_CONTROL
+oracle.install.db.config.starterdb.automatedBackup.enable=false
+oracle.install.db.config.starterdb.storageType=ASM_STORAGE
+DECLINE_SECURITY_UPDATES=true
+
+```
+
+各参数具体含义可参考 http://loofeer.blog.51cto.com/707932/1119713
+
+ ./runInstaller -silent -responseFile /tmp/database/db_install.rsp 
+ 
+2.6 安装数据库实例
+
+cd /tmp/database
+
+cp response/dbca.rsp ./
+
+vi dbca.rsp
+
+```javascript
+
+RESPONSEFILE_VERSION = "11.2.0"
+OPERATION_TYPE = "createDatabase"
+GDBNAME = "DB11G"
+SID = "DB11G"
+TEMPLATENAME = "General_Purpose.dbc"
+SYSPASSWORD = "abcd1234"
+SYSTEMPASSWORD = "abcd1234"
+
+
+```
+
+dbca -silent -cloneTemplate -responseFile /tmp/database/dbca.rsp
+
+2.6 创建监听器
+
+cd /tmp/database
+
+cp response/netca.rsp ./
+
+vi netca.rsp
+
+```javascript
+
+RESPONSEFILE_VERSION="11.2"
+CREATE_TYPE="CUSTOM"
+INSTALLED_COMPONENTS={"server","net8","javavm"}
+INSTALL_TYPE=""custom""
+LISTENER_NUMBER=1
+LISTENER_NAMES={"LISTENER"}
+LISTENER_PROTOCOLS={"TCP;1521"}
+LISTENER_START=""LISTENER""
+NAMING_METHODS={"TNSNAMES","ONAMES","HOSTNAME"}
+NSN_NUMBER=1
+NSN_NAMES={"EXTPROC_CONNECTION_DATA"}
+NSN_SERVICE={"PLSExtProc"}
+NSN_PROTOCOLS={"TCP;HOSTNAME;1521"}
+
+```
+
+netca /silent /responseFile /home/oracle/netca.rsp
+
+2.7 修改 /etc/oratab
+
+DB11G:/u01/app/oracle/product/11.2.0/db_1:Y
+
+2.8 启动监听，启动实例
+
+lsnrctl start
+dbstart $ORACLE_HOME
+
+2.9 为系统添加服务
+
+touch /etc/init.d/oracle
+
+chmod 755 /etc/init.d/oracle
+
+vi /etc/init.d/oracle
+
+```javascript
+
+#!/bin/bash
+# chkconfig: 35 90 10
+# description: Oracle Database Service Daemon.
+ORCL_BASE="/u01/app/oracle"
+ORACLE_HOME=/u01/app/oracle/product/11.2.0/db_1
+ORACLE_OWNER=oracle
+case "$1" in
+ start)
+    su - $ORACLE_OWNER -c "$ORACLE_HOME/bin/lsnrctl start"             
+    su - $ORACLE_OWNER -c "$ORACLE_HOME/bin/dbstart $ORACLE_HOME"      
+    su - $ORACLE_OWNER -c "$ORACLE_HOME/bin/emctl start dbconsole"     
+    ;;
+ stop)
+    su - $ORACLE_OWNER -c "$ORACLE_HOME/bin/emctl stop dbconsole"      
+    su - $ORACLE_OWNER -c "$ORACLE_HOME/bin/dbshut $ORACLE_HOME"       
+    su - $ORACLE_OWNER -c "$ORACLE_HOME/bin/lsnrctl stop"              
+    ;;
+ status)
+    if(pgrep "tnslsnr" && netstat -anpt | grep ":1521") &> /dev/null
+    then
+        echo "Oracle 11g Net Listener is running."
+    else
+        echo "Oracle 11g Net Listener is not running."
+    fi
+    if(netstat -anpt | grep ":1158" && netstat -anpt | grep ":5520") &> /dev/null
+    then
+        echo "Oracle 11g Enterprise Manager is running."
+    else
+        echo "Oracle 11g Enterprise Manager is not running."
+    fi
+    ;;
+ restart)
+    $0 stop
+    $0 start
+    ;;
+ *)
+    echo "Usage: $0 {start|stop|restart|status}"
+    exit 1
+    ;;
+esac
+exit 0
+
+```
+
+service oracle restart
+
+chkconfig --add oracle
