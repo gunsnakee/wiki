@@ -373,3 +373,21 @@ exit 0
 service oracle restart
 
 chkconfig --add oracle
+
+2.10 创建tnsnames.ora
+
+cd  $ORACLE_HOME/network/admin/
+
+touch tnsnames.ora
+
+```javascript
+DB11G =
+(DESCRIPTION =
+   (ADDRESS_LIST =
+     (ADDRESS = (PROTOCOL = TCP)(HOST = xxxxxx)(PORT = 1521))
+   )
+   (CONNECT_DATA =
+     (SID = DB11G)
+   )
+)
+```
