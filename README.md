@@ -284,7 +284,37 @@ DB11G:/u01/app/oracle/product/11.2.0/db_1:Y
 2.8 启动监听，启动实例
 
 lsnrctl start
+
 dbstart $ORACLE_HOME
+
+如果监听不使用默认的1521端口，还需要做以下设置:
+
+```javascript
+1、停掉监听 lsnrctl stop
+2、修改 listener.ora 
+
+LISTENER =
+  (DESCRIPTION_LIST =
+    (DESCRIPTION =
+      (ADDRESS = (PROTOCOL = IPC)(KEY = EXTPROC1)) <----- 没有要加
+      (ADDRESS = (PROTOCOL = TCP)(HOST = myhost)(PORT = 1521)) 《---- 修改你想要的端口
+    )
+  )
+  
+3、启动监听 lsnrctl start
+
+4、 sqlplus / as sysdba
+
+ALTER SYSTEM SET LOCAL_LISTENER = "(ADDRESS=(PROTOCOL=TCP)(HOST=xxxxxxx)(PORT=15222))";
+
+ALTER SYSTEM REGISTER;
+
+exit;
+
+
+5、查看监听状态 lsnrctl status
+
+```
 
 2.9 为系统添加服务
 
