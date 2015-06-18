@@ -1,6 +1,6 @@
-# oracle±¸·İ¼°»Ö¸´£¨Ê¹ÓÃexpdp¼°impdp£©
+# oracleå¤‡ä»½åŠæ¢å¤ï¼ˆä½¿ç”¨expdpåŠimpdpï¼‰
 
-## oracle±¸·İ
+## oracleå¤‡ä»½
 
 cronExpdp.sh 
 
@@ -9,7 +9,7 @@ cronExpdp.sh
 #!/bin/bash
 . ~/.bash_profile
 
-# Òª¸ú DATA_PUMP_DIR Ò»ÖÂ
+# è¦è·Ÿ DATA_PUMP_DIR ä¸€è‡´
 export EXPORT_FOLDER=/oracle/product/11R2/rdbms/log
 
 DATE=$(date +"%Y%m%d")
@@ -37,7 +37,7 @@ find $EXPORT_FOLDER/*db11g_export.tar.bz2 -mtime +3 -delete
 
 ```
 
-## oracle »Ö¸´
+## oracle æ¢å¤
 
 recreateSchema.sh
 
@@ -53,7 +53,7 @@ DATE=$(date +"%Y%m%d")
 FNAME=$DATE-db11g_export
 
 DIR_BACKUP=/home/oracle/backup/192.168.100.102
-# Òª¸ú DATA_PUMP_DIR Ò»ÖÂ
+# è¦è·Ÿ DATA_PUMP_DIR ä¸€è‡´
 DIR_DATA_PUMP=/u01/app/oracle/admin/DB11G/dpdump
 
 if [ -f $DIR_BACKUP/$FNAME.tar.bz2 ] 

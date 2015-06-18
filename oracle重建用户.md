@@ -1,4 +1,4 @@
-# oracle 重建用户脚本
+# oracle 閲嶅缓鐢ㄦ埛
 
 recreateHPP.sh
 
@@ -67,7 +67,7 @@ end;
 /
 
 CREATE USER HPP
-  IDENTIFIED BY "您的密码"
+  IDENTIFIED BY "鎮ㄧ殑瀵嗙爜"
   DEFAULT TABLESPACE TBS_DATA
   TEMPORARY TABLESPACE TEMP
   PROFILE DEFAULT
