@@ -374,6 +374,8 @@ service oracle restart
 
 chkconfig --add oracle
 
+chkconfig oracle on
+
 2.10 创建tnsnames.ora
 
 cd  $ORACLE_HOME/network/admin/
