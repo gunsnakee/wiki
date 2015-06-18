@@ -1,4 +1,4 @@
-# oracle重建用户脚本
+# oracle 重建用户脚本
 
 recreateHPP.sh
 
