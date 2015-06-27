@@ -147,7 +147,7 @@ umask 022
 TMP=/tmp; export TMP
 TMPDIR=$TMP; export TMPDIR
 
-ORACLE_HOSTNAME=centos101-oracle; export ORACLE_HOSTNAME   <--- 一定要跟你的主机名一样
+ORACLE_HOSTNAME=127.0.0.1; export ORACLE_HOSTNAME
 ORACLE_UNQNAME=DB11G; export ORACLE_UNQNAME
 ORACLE_BASE=/u01/app/oracle; export ORACLE_BASE
 ORACLE_HOME=$ORACLE_BASE/product/11.2.0/db_1; export ORACLE_HOME
@@ -193,7 +193,7 @@ cp response/db_install.rsp ./
 
 oracle.install.responseFileVersion=/oracle/install/rspfmt_dbinstall_response_schema_v11_2_0
 oracle.install.option=INSTALL_DB_SWONLY
-ORACLE_HOSTNAME=hpp-backup
+ORACLE_HOSTNAME=127.0.0.1
 UNIX_GROUP_NAME=oinstall
 INVENTORY_LOCATION=/home/oracle/inventory
 SELECTED_LANGUAGES=en
@@ -283,6 +283,11 @@ DB11G:/u01/app/oracle/product/11.2.0/db_1:Y
 
 2.8 启动监听，启动实例
 
+
+修改 $ORACLE_HOME/network/admin/listener.ora
+
+把 HOST = 127.0.0.1 修改为 HOST = 0.0.0.0
+
 lsnrctl start
 
 dbstart $ORACLE_HOME
@@ -297,7 +302,7 @@ LISTENER =
   (DESCRIPTION_LIST =
     (DESCRIPTION =
       (ADDRESS = (PROTOCOL = IPC)(KEY = EXTPROC1)) <----- 没有要加
-      (ADDRESS = (PROTOCOL = TCP)(HOST = myhost)(PORT = 1521)) 《---- 修改你想要的端口
+      (ADDRESS = (PROTOCOL = TCP)(HOST = 0.0.0.0)(PORT = 1521)) 《---- 修改你想要的端口
     )
   )
   
@@ -305,7 +310,7 @@ LISTENER =
 
 4、 sqlplus / as sysdba
 
-ALTER SYSTEM SET LOCAL_LISTENER = "(ADDRESS=(PROTOCOL=TCP)(HOST=xxxxxxx)(PORT=15222))";
+ALTER SYSTEM SET LOCAL_LISTENER = "(ADDRESS=(PROTOCOL=TCP)(HOST=0.0.0.0)(PORT=15222))";
 
 ALTER SYSTEM REGISTER;
 
@@ -386,7 +391,7 @@ touch tnsnames.ora
 DB11G =
 (DESCRIPTION =
    (ADDRESS_LIST =
-     (ADDRESS = (PROTOCOL = TCP)(HOST = xxxxxx)(PORT = 1521))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = 127.0.0.1)(PORT = 1521))
    )
    (CONNECT_DATA =
      (SID = DB11G)
